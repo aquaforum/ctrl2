@@ -6,6 +6,11 @@
 #include "dallas/ds2450.h"
 #include "OneWireBus.h"
 
+enum VoltageRange { Voltage2560mV = DS2450_RANGE_2V, Voltage5120mV = DS2450_RANGE_5V };
+
+#define ValueVoltage2560mV  2560
+#define ValueVoltage5120mV  5120
+
 class DeviceDS2450 : public OneWireDevice {
 public:
 	static const int ChannelCount = 4;
@@ -13,11 +18,8 @@ public:
 	static const int MaximalResolution = 16;
 	static const int MinimalNoiseResolution = 9;
 
-	enum VoltageRange { Voltage2560mV = DS2450_RANGE_2V, Voltage5120mV = DS2450_RANGE_5V };
 
 private:
-	static const int ValueVoltage2560mV = 2560;
-	static const int ValueVoltage5120mV = 5120;
 
 public:
 	DeviceDS2450();
@@ -51,13 +53,14 @@ public:
 	double mvFromValue(int channel, unsigned int value) { return voltage(value << (MaximalResolution - resolutions[channel]), VoltageRange(ranges[channel])); }
 
 	unsigned int maximalValue(int channel)			{ return (1 << resolutions[channel]) - 1; }
-	double milliVoltsStep(int channel)				{ return voltage(1 << (MaximalResolution - resolutions[channel]), VoltageRange(ranges[channel])); }
+        double milliVoltsStep(int channel)				{ return voltage(1 << (MaximalResolution - resolutions[channel]), VoltageRange(ranges[channel])); }
 	double maximalMilliVolts(int channel)			{ return voltage(maximalValue(channel) << (MaximalResolution - resolutions[channel]), VoltageRange(ranges[channel])); }
 
 	static QString milliVoltsText(double mv)		{ return QString::number(mv, 'f', 3) + " mV"; }
 
 private:
-	static double voltage(unsigned short value, VoltageRange range) { return double(range == Voltage2560mV ? ValueVoltage2560mV : ValueVoltage5120mV) * value / (1 << MaximalResolution); }
+        static double voltage(unsigned short value, VoltageRange range) {
+            return (double)(range ==  VoltageRange(Voltage2560mV) ? ValueVoltage2560mV : ValueVoltage5120mV) * value / (double)(1 << MaximalResolution); }
 
 	unsigned char ranges[ChannelCount];
 	unsigned char outputStates[ChannelCount];

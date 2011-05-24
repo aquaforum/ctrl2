@@ -114,7 +114,7 @@ void DS2450SettingsDialog::ChannelControlSet::on_resolutionSpinBox_valueChanged(
 
 void DS2450SettingsDialog::ChannelControlSet::on_inputRangeComboBox_currentIndexChanged()
 {
-	m_device->setRange(m_channel, DeviceDS2450::VoltageRange(inputRangeComboBox->currentIndex()));
+        m_device->setRange(m_channel, VoltageRange(inputRangeComboBox->currentIndex()));
 	updateStepSize();
 }
 
