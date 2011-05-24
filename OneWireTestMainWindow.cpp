@@ -6,10 +6,16 @@
 #include "DS18B20SettingsDialog.h"
 #include "platform.h"
 
+#include <QSettings>
+
 OneWireTestMainWindow::OneWireTestMainWindow(QWidget *parent, Qt::WFlags flags)
 	: QMainWindow(parent, flags)
 {
 	setupUi(this);
+
+        // я вирішив що не погано б було б запам’ятовувати номер порту
+        QSettings set;
+        portSpinBox->setValue(set.value("portNo",portSpinBox->value()).toInt());
 
     on_portSpinBox_valueChanged(portSpinBox->value());
 
@@ -99,6 +105,11 @@ void OneWireTestMainWindow::on_startStopPushButton_clicked()
 		startStopPushButton->setText(tr("Старт"));
 	}
 	else {
+            // зберегти номер та назву порту
+            QSettings set;
+            set.setValue("portNo",portSpinBox->value());
+            set.setValue("portName",portLineEdit->text());
+
 		if (!search())
 			return;
 		start();
@@ -151,7 +162,11 @@ void OneWireTestMainWindow::on_devicesTreeView_clicked(const QModelIndex & index
 void OneWireTestMainWindow::on_portSpinBox_valueChanged(int)
 {
    	bus.setPortNumber(portSpinBox->value());
-   	portLineEdit->setText(bus.portName());
+        // жахлива конструкція, ледве її знайшов. А простіше не можна було зробити ?
+        QSettings set;
+        portLineEdit->setText(set.value("portName",bus.portName()).toString());
+        // сенс написаного мною що якщо воно буде знайдено в файлах то буде вживатися
+        // інакще буде вживатися те, що в bus.portName()
 }
 
 void OneWireTestMainWindow::showDallasError(int error)
