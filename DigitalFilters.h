@@ -143,8 +143,8 @@ class MedianLowPassRCFilter_u16 : public DigitalFilter_u16 {
 public:
 	static const int windowSize = 8;
 	static const int minimalLogK = 2;
-	static const int maximalLogK = 9;
-	static const int smallStepsToDecreaseLogK = 2;
+	static const int maximalLogK = 8;
+	static const int smallStepsToDecreaseLogK = 3;
 
 	MedianLowPassRCFilter_u16(int medianWindowSize, unsigned int noiseBits) : ky(0), logK(minimalLogK), smallStepsWithEqualLogK(0), dif_sum(0), medianFilter(medianWindowSize)
 	{
@@ -167,8 +167,6 @@ public:
 			smallStepsWithEqualLogK = 0;
 		}
 		else {
-			if (smallStepsWithEqualLogK < smallStepsToDecreaseLogK)
-				++smallStepsWithEqualLogK;
 			if (dif_sum <= 0 && dif_cur >= 0 || dif_sum >= 0 && dif_cur <= 0) {
 				if (logK < maximalLogK) {
 					smallStepsWithEqualLogK = 0;
@@ -181,6 +179,8 @@ public:
 					--logK;
 				}
 			}
+			if (smallStepsWithEqualLogK < smallStepsToDecreaseLogK)
+				++smallStepsWithEqualLogK;
 										// y(n) = y(n-1) + (x(n) - y(n-1)) / k, k = 2^logK
 			ky += dif_cur >> logK;					// maxK * y(n) = maxK * y(n-1) + maxK * (x(n) - y(n-1)) / k
 			dif_sum += dif_cur - dif[dif.size() - 1];
