@@ -1,6 +1,8 @@
 #ifndef ONEWIREBUS_H
 #define ONEWIREBUS_H
 
+#include <QFile>
+#include <QTextStream>
 #include <QString>
 #include <QVector>
 #include <QThread>
@@ -15,16 +17,16 @@ class OneWireDevice;
 class OneWireBus : public QThread {
 	Q_OBJECT
 public:
-	OneWireBus();
+	OneWireBus(bool isLogEnabled = false);
 	~OneWireBus();
 
 	void addFamilyPrototype(OneWireDevice *prototype);
 
-    QString portName() const                    { return m_portName; }
-    void setPortName(const QString &portName)   { m_portName = portName; }
+	QString portName() const                    { return m_portName; }
+	void setPortName(const QString &portName)   { m_portName = portName; }
     
 	unsigned int portNumber() const				{ return m_portNumber; }
-    void setPortNumber(unsigned int portNumber);
+	void setPortNumber(unsigned int portNumber);
 
 	DallasError searchDevices();
 	const QVector<OneWireDevice*> &devices() const	{ return m_devices; }
@@ -41,13 +43,17 @@ protected:
 	void run();
 
 private:
-    QString m_portName;
+	void writeStateToLog(OneWireDevice *device, int msecs);
+
+	QString m_portName;
 	unsigned int m_portNumber;
 	bool dallasLibraryInitialized;
 	QVector<OneWireDevice*> m_devices;
 	OneWireDevice *prototypes[UCHAR_MAX + 1];
 	volatile bool started;
 	QMutex mutex;
+	QFile logFile;
+	QTextStream log;
 };
 
 class OneWireDevice : public QObject {
@@ -71,6 +77,10 @@ public:
 	virtual DallasError readConfiguration() { return DALLAS_NO_ERROR; }
 	virtual DallasError writeConfiguration() { return DALLAS_NO_ERROR; }
 	virtual DallasError readState() { return DALLAS_NO_ERROR; }
+
+	virtual bool isPrepareStateAllSupported() { return false; }
+	virtual DallasError prepareStateAll() { return DALLAS_NO_ERROR; }
+	virtual DallasError readPreparedState() { return readState(); }
 
 	// bus synchronization 
 

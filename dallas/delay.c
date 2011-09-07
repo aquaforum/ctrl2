@@ -1,5 +1,3 @@
-#include "../platform.h"
-
 #if defined(_WINDOWS_) || defined(_WINDOWS_CE_)
 #include <windows.h>
 #endif

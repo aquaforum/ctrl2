@@ -8,13 +8,14 @@
 
 class OneWireBusModel;
 class QModelIndex;
+class QSettings;
 
 class OneWireTestMainWindow : public QMainWindow, private Ui::OneWireTestMainWindow
 {
 	Q_OBJECT
 
 public:
-	OneWireTestMainWindow(QWidget *parent = 0, Qt::WFlags flags = 0);
+	OneWireTestMainWindow(QSettings & settings, QWidget *parent = 0, Qt::WFlags flags = 0);
 	~OneWireTestMainWindow();
 
 	bool search();
@@ -42,6 +43,8 @@ private:
 
 	QLabel *pollingPeriodLabel;
 	QLabel *errorLabel;
+
+	QSettings &settings;
 };
 
 #endif // ONEWIRETESTMAINWINDOW_H

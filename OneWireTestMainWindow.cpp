@@ -4,20 +4,17 @@
 #include "DeviceDS2408.h"
 #include "DS2450SettingsDialog.h"
 #include "DS18B20SettingsDialog.h"
-#include "platform.h"
 
 #include <QSettings>
 
-OneWireTestMainWindow::OneWireTestMainWindow(QWidget *parent, Qt::WFlags flags)
-	: QMainWindow(parent, flags)
+OneWireTestMainWindow::OneWireTestMainWindow(QSettings & settings, QWidget *parent, Qt::WFlags flags)
+	: QMainWindow(parent, flags), settings(settings), bus(settings.value("log", false).toBool())
 {
 	setupUi(this);
 
-        // я вирішив що не погано б було б запам’ятовувати номер порту
-        QSettings set;
-        portSpinBox->setValue(set.value("portNo",portSpinBox->value()).toInt());
-
-    on_portSpinBox_valueChanged(portSpinBox->value());
+        // vanessa: я вирішив що не погано б було б запам’ятовувати номер порту
+        portSpinBox->setValue(settings.value("portNo",portSpinBox->value()).toInt());
+	on_portSpinBox_valueChanged(portSpinBox->value());
 
 #if defined(_WINDOWS_) || defined(_WINDOWS_CE_)
     portLineEdit->hide();
@@ -105,10 +102,9 @@ void OneWireTestMainWindow::on_startStopPushButton_clicked()
 		startStopPushButton->setText(tr("Старт"));
 	}
 	else {
-            // зберегти номер та назву порту
-            QSettings set;
-            set.setValue("portNo",portSpinBox->value());
-            set.setValue("portName",portLineEdit->text());
+		// зберегти номер та назву порту
+		settings.setValue("portNo",portSpinBox->value());
+		settings.setValue("portName",portLineEdit->text());
 
 		if (!search())
 			return;
@@ -120,6 +116,7 @@ void OneWireTestMainWindow::on_startStopPushButton_clicked()
 
 void OneWireTestMainWindow::on_devicesTreeView_clicked(const QModelIndex & index)
 {
+	bool isStarted = started;
 	OneWireDevice *device = model->deviceFromIndex(index);
 	if (!device)
 		return;
@@ -127,10 +124,14 @@ void OneWireTestMainWindow::on_devicesTreeView_clicked(const QModelIndex & index
 		DeviceDS2450 *adc = static_cast<DeviceDS2450 *>(device);
 		int channel = model->channelFromIndex(index);
 		if (channel < 0) {
+			if (isStarted)
+				stop();
 			DS2450SettingsDialog dialog;
 			dialog.setDevice(adc);
 			dialog.showMaximized();
 			dialog.exec();
+			if (isStarted)
+				start();
 			this->activateWindow();
 		}
 		else {
@@ -150,11 +151,15 @@ void OneWireTestMainWindow::on_devicesTreeView_clicked(const QModelIndex & index
 		DeviceDS18B20 *thermometer = static_cast<DeviceDS18B20 *>(device);
 		int channel = model->channelFromIndex(index);
 		if (channel < 0) {
+			if (isStarted)
+				stop();
 			DS18B20SettingsDialog dialog;
 			dialog.setDevice(thermometer);
 			dialog.showMaximized();
 			dialog.exec();
-			//this->activateWindow();
+			if (isStarted)
+				start();
+			this->activateWindow();
 		}
 	}
 }
@@ -162,9 +167,8 @@ void OneWireTestMainWindow::on_devicesTreeView_clicked(const QModelIndex & index
 void OneWireTestMainWindow::on_portSpinBox_valueChanged(int)
 {
    	bus.setPortNumber(portSpinBox->value());
-        // жахлива конструкція, ледве її знайшов. А простіше не можна було зробити ?
-        QSettings set;
-        portLineEdit->setText(set.value("portName",bus.portName()).toString());
+        // vanessa: жахлива конструкція, ледве її знайшов. А простіше не можна було зробити ?
+        portLineEdit->setText(settings.value("portName",bus.portName()).toString());
         // сенс написаного мною що якщо воно буде знайдено в файлах то буде вживатися
         // інакще буде вживатися те, що в bus.portName()
 }

@@ -1,11 +1,14 @@
 #include <QMessageBox>
 #include "DS2450SettingsDialog.h"
 
+static const double discreteness[] = {10, 5, 2, 1, 0.5, 0.2, 0.1, 0.05};
+
 DS2450SettingsDialog::DS2450SettingsDialog(QWidget *parent)
 	: QDialog(parent)
 {
 	setupUi(this);
-	channelControls.append(ChannelControlSet(&tempDevice, 0, resolutionSpinBox, inputRangeComboBox, stepSizeLabel, noiseWarningLabel));
+	channelControls.append(ChannelControlSet(&tempDevice, 0, resolutionSpinBox, inputRangeComboBox, stepSizeLabel, 
+		discretenessComboBox, filterComboBox));
 	createChannelSettingsTabs();
 }
 
@@ -17,6 +20,15 @@ void DS2450SettingsDialog::setDevice(DeviceDS2450 *device)
 	for (int i = 0; i < 4; ++i) {
 		channelControls[i].resolutionSpinBox->setValue(tempDevice.resolution(i));
 		channelControls[i].inputRangeComboBox->setCurrentIndex(tempDevice.range(i));
+		channelControls[i].discretenessComboBox->setCurrentIndex(0);
+		for (int j = sizeof(discreteness) / sizeof(discreteness[0]) - 1; j >= 0; --j) {
+			if (tempDevice.discreteness(i) <= discreteness[j]) {
+				channelControls[i].discretenessComboBox->setCurrentIndex(j);
+				break;
+			}
+		}
+		tempDevice.setDiscreteness(i, discreteness[channelControls[i].discretenessComboBox->currentIndex()]);
+		channelControls[i].filterComboBox->setCurrentIndex(tempDevice.filterType(i));
 	}
 }
 
@@ -34,12 +46,27 @@ void DS2450SettingsDialog::on_inputRangeComboBox_currentIndexChanged(int /*i*/)
 			ccs.on_inputRangeComboBox_currentIndexChanged();
 }
 
+void DS2450SettingsDialog::on_filterComboBox_currentIndexChanged(int /*i*/)
+{
+	foreach(ChannelControlSet ccs, channelControls)
+		if (sender() == ccs.filterComboBox)
+			ccs.on_filterComboBox_currentIndexChanged();
+}
+
+void DS2450SettingsDialog::on_discretenessComboBox_currentIndexChanged(int /*i*/)
+{
+	foreach(ChannelControlSet ccs, channelControls)
+		if (sender() == ccs.discretenessComboBox)
+			ccs.on_discretenessComboBox_currentIndexChanged();
+}
+
 void DS2450SettingsDialog::createChannelSettingsTabs()
 {
 	while(channelControls.size() < 4) {
 		QWidget *tab = new QWidget;
 		QGridLayout *layout = new QGridLayout(tab);
-		ChannelControlSet ccs(&tempDevice, channelControls.size(), new QSpinBox(this), new QComboBox(this), new QLabel(this), new QLabel(this));
+		ChannelControlSet ccs(&tempDevice, channelControls.size(), new QSpinBox(this), new QComboBox(this), new QLabel(this), 
+			new QComboBox(this), new QComboBox(this));
 
 		ccs.resolutionSpinBox->setGeometry(resolutionSpinBox->geometry());
 		ccs.resolutionSpinBox->setSizePolicy(resolutionSpinBox->sizePolicy());
@@ -57,8 +84,15 @@ void DS2450SettingsDialog::createChannelSettingsTabs()
 		ccs.stepSizeLabel->setFrameShape(stepSizeLabel->frameShape());
 		ccs.stepSizeLabel->setText(stepSizeLabel->text());
 
-		ccs.noiseWarningLabel->setGeometry(noiseWarningLabel->geometry());
-		ccs.noiseWarningLabel->setText(noiseWarningLabel->text());
+		ccs.discretenessComboBox->setGeometry(discretenessComboBox->geometry());
+		ccs.discretenessComboBox->setSizePolicy(discretenessComboBox->sizePolicy());
+		for (int i = 0; i < discretenessComboBox->count(); ++i)
+			ccs.discretenessComboBox->addItem(discretenessComboBox->itemText(i));
+
+		ccs.filterComboBox->setGeometry(filterComboBox->geometry());
+		ccs.filterComboBox->setSizePolicy(filterComboBox->sizePolicy());
+		for (int i = 0; i < filterComboBox->count(); ++i)
+			ccs.filterComboBox->addItem(filterComboBox->itemText(i));
 
 		QLabel *label = new QLabel(this);
 		label->setText(resolutionLabel->text());
@@ -75,7 +109,15 @@ void DS2450SettingsDialog::createChannelSettingsTabs()
 		layout->addWidget(label, 2, 0);
 		layout->addWidget(ccs.stepSizeLabel, 2, 1);
 
-		layout->addWidget(ccs.noiseWarningLabel, 3, 0, 1, 2);
+		label = new QLabel(this);
+		label->setText(discretenessLabel->text());
+		layout->addWidget(label, 3, 0);
+		layout->addWidget(ccs.discretenessComboBox, 3, 1);
+
+		label = new QLabel(this);
+		label->setText(filterLabel->text());
+		layout->addWidget(label, 4, 0);
+		layout->addWidget(ccs.filterComboBox, 4, 1);
 
 		channelControls.append(ccs);
 		channelsTabWidget->addTab(tab, QString::number(channelControls.size()));
@@ -84,6 +126,10 @@ void DS2450SettingsDialog::createChannelSettingsTabs()
 			this, SLOT(on_inputRangeComboBox_currentIndexChanged(int)));
 		connect(ccs.resolutionSpinBox, SIGNAL(valueChanged(int)),
 			this, SLOT(on_resolutionSpinBox_valueChanged(int)));
+		connect(ccs.discretenessComboBox, SIGNAL(currentIndexChanged(int)),
+			this, SLOT(on_discretenessComboBox_currentIndexChanged(int)));
+		connect(ccs.filterComboBox, SIGNAL(currentIndexChanged(int)),
+			this, SLOT(on_filterComboBox_currentIndexChanged(int)));
 	}
 }
 
@@ -104,11 +150,6 @@ void DS2450SettingsDialog::accept()
 void DS2450SettingsDialog::ChannelControlSet::on_resolutionSpinBox_valueChanged()
 {
 	m_device->setResolution(m_channel, resolutionSpinBox->value());
-	if (m_device->resolution(m_channel) < DeviceDS2450::MinimalNoiseResolution) {
-		noiseWarningLabel->hide();
-	} else {
-		noiseWarningLabel->show();
-	}
 	updateStepSize();
 }
 
@@ -116,6 +157,16 @@ void DS2450SettingsDialog::ChannelControlSet::on_inputRangeComboBox_currentIndex
 {
 	m_device->setRange(m_channel, DeviceDS2450::VoltageRange(inputRangeComboBox->currentIndex()));
 	updateStepSize();
+}
+
+void DS2450SettingsDialog::ChannelControlSet::on_discretenessComboBox_currentIndexChanged()
+{
+	m_device->setDiscreteness(m_channel, discreteness[discretenessComboBox->currentIndex()]);
+}
+
+void DS2450SettingsDialog::ChannelControlSet::on_filterComboBox_currentIndexChanged()
+{
+	m_device->setFilterType(m_channel, DeviceDS2450::FilterType(filterComboBox->currentIndex()));
 }
 
 void DS2450SettingsDialog::ChannelControlSet::updateStepSize()

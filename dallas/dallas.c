@@ -2,8 +2,6 @@
 // Ported to ARM by cherep22
 
 //----- Include Files ---------------------------------------------------------
-#include "../platform.h"
-
 #if defined(_WINDOWS_) || defined(_WINDOWS_CE_)
 #include <windows.h>
 #endif
@@ -477,7 +475,7 @@ u08 dallasReadByte()
     return b;
 }
 
-u08 dallasReadRAM(dallas_rom_id_T* rom_id, u16 addr, u08 len, u08 *data)
+u08 dallasReadSelectedRAM(u16 addr, u08 len, u08 *data)
 {
     u08 i, j;
     u16 crc = 0;
@@ -488,11 +486,6 @@ u08 dallasReadRAM(dallas_rom_id_T* rom_id, u16 addr, u08 len, u08 *data)
     if (len == 0)
         return DALLAS_ZERO_LEN;
 
-    dallasBufferEnabled(1);
-
-    // reset the bus and request the device
-    DALLAS_CHECK(dallasMatchROM(rom_id));
-    
     // enter read mode
     dallasWriteByte(DALLAS_READ_MEMORY);
     crc = crc16_update(crc, DALLAS_READ_MEMORY);
@@ -535,8 +528,29 @@ u08 dallasReadRAM(dallas_rom_id_T* rom_id, u16 addr, u08 len, u08 *data)
         }
     }
 
-    dallasBufferEnabled(0);
     return DALLAS_NO_ERROR;
+}
+
+u08 dallasReadRAM(dallas_rom_id_T* rom_id, u16 addr, u08 len, u08 *data)
+{
+    u08 result;
+
+    // first make sure we actually have something to do
+    if (data == NULL)
+        return DALLAS_NULL_POINTER;
+    if (len == 0)
+        return DALLAS_ZERO_LEN;
+
+    dallasBufferEnabled(1);
+
+    // reset the bus and request the device
+    DALLAS_CHECK(dallasMatchROM(rom_id));
+
+    result = dallasReadSelectedRAM(addr, len, data);
+
+    dallasBufferEnabled(0);
+
+    return result;
 }
 
 u08 dallasWriteRAM(dallas_rom_id_T* rom_id, u16 addr, u08 len, u08* data)
@@ -662,12 +676,14 @@ u08 dallasAddressCheck(dallas_rom_id_T* rom_id, u08 family)
 {
     u08 i;
 
-    dallas_crc = 0;
-    for(i=0;i<8;i++)
-        dallasCRC(rom_id->byte[i]);
-    
-    if (dallas_crc || rom_id->byte[DALLAS_FAMILY_IDX] != family)
-        return DALLAS_ADDRESS_ERROR;
+    if (rom_id) {
+        dallas_crc = 0;
+        for(i=0;i<8;i++)
+            dallasCRC(rom_id->byte[i]);
+
+        if (dallas_crc || rom_id->byte[DALLAS_FAMILY_IDX] != family)
+            return DALLAS_ADDRESS_ERROR;
+    }
 
     return DALLAS_NO_ERROR;
 }

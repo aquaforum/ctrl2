@@ -31,9 +31,14 @@ public:
 
 	static QString temperatureText(double deg)		{ return QString::number(deg, 'f', 4) + " °Ñ"; }
 
+	bool isPrepareStateAllSupported()	{ return true; }
+	DallasError prepareStateAll()		{ return prepareState(0); }
+	DallasError readPreparedState();
 	DallasError readState();
 
 private:
+	DallasError prepareState(dallas_rom_id_T *rom_id);
+
 	unsigned char m_resolution;
 	unsigned short m_temperature;
 };

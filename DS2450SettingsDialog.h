@@ -25,6 +25,8 @@ public:
 private slots:
 	void on_resolutionSpinBox_valueChanged(int i);
 	void on_inputRangeComboBox_currentIndexChanged(int i);
+	void on_discretenessComboBox_currentIndexChanged(int i);
+	void on_filterComboBox_currentIndexChanged(int i);
 
 private:
 	void createChannelSettingsTabs();
@@ -33,16 +35,20 @@ private:
 	class ChannelControlSet {
 	public:
 		ChannelControlSet() {}
-		ChannelControlSet(DeviceDS2450 *device, int channel, QSpinBox *rsb, QComboBox *ircb, QLabel *ssl, QLabel *nwl)
-			: m_device(device), m_channel(channel), resolutionSpinBox(rsb), inputRangeComboBox(ircb), stepSizeLabel(ssl), noiseWarningLabel(nwl) { }
+		ChannelControlSet(DeviceDS2450 *device, int channel, QSpinBox *rsb, QComboBox *ircb, QLabel *ssl, QComboBox *dcb, QComboBox *fcb)
+			: m_device(device), m_channel(channel), resolutionSpinBox(rsb), inputRangeComboBox(ircb), stepSizeLabel(ssl), 
+			discretenessComboBox(dcb), filterComboBox(fcb) { }
 
 		void on_resolutionSpinBox_valueChanged();
 		void on_inputRangeComboBox_currentIndexChanged();
+		void on_discretenessComboBox_currentIndexChanged();
+		void on_filterComboBox_currentIndexChanged();
 
 		QSpinBox *resolutionSpinBox;
 		QComboBox *inputRangeComboBox;
 		QLabel *stepSizeLabel;
-		QLabel *noiseWarningLabel;
+		QComboBox *discretenessComboBox;
+		QComboBox *filterComboBox;
 		void updateStepSize();
 		DeviceDS2450 *m_device;
 		int m_channel;

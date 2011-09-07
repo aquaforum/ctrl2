@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>203</width>
-    <height>269</height>
+    <width>217</width>
+    <height>295</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -75,18 +75,21 @@
       <attribute name="title">
        <string>1</string>
       </attribute>
-      <layout class="QGridLayout" name="gridLayout">
+      <layout class="QGridLayout" name="gridLayout_2">
        <item row="0" column="0">
         <widget class="QLabel" name="resolutionLabel">
          <property name="text">
           <string>Разрядность</string>
+         </property>
+         <property name="buddy">
+          <cstring>resolutionSpinBox</cstring>
          </property>
         </widget>
        </item>
        <item row="0" column="1">
         <widget class="QSpinBox" name="resolutionSpinBox">
          <property name="sizePolicy">
-          <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
@@ -106,6 +109,9 @@
         <widget class="QLabel" name="inputRangeLabel">
          <property name="text">
           <string>Диапазон</string>
+         </property>
+         <property name="buddy">
+          <cstring>inputRangeComboBox</cstring>
          </property>
         </widget>
        </item>
@@ -132,7 +138,7 @@
        <item row="2" column="0">
         <widget class="QLabel" name="stepSizeCaptionLabel">
          <property name="text">
-          <string>Дискретность</string>
+          <string>1 разряд =</string>
          </property>
         </widget>
        </item>
@@ -152,11 +158,104 @@
          </property>
         </widget>
        </item>
-       <item row="3" column="0" colspan="2">
-        <widget class="QLabel" name="noiseWarningLabel">
+       <item row="3" column="0">
+        <widget class="QLabel" name="discretenessLabel">
          <property name="text">
-          <string>&lt;i&gt;Результат со случайным шумом&lt;/i&gt;</string>
+          <string>Дискретность</string>
          </property>
+         <property name="buddy">
+          <cstring>discretenessComboBox</cstring>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="QComboBox" name="discretenessComboBox">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <item>
+          <property name="text">
+           <string>10 mV</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>5 mV</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>2 mV</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>1 mV</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>0.5 mV</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>0.2 mV</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>0.1 mV</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>0.05 mV</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QLabel" name="filterLabel">
+         <property name="text">
+          <string>Фильтр</string>
+         </property>
+         <property name="buddy">
+          <cstring>filterComboBox</cstring>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="1">
+        <widget class="QComboBox" name="filterComboBox">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <item>
+          <property name="text">
+           <string>Без фильтра</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Среднее 16</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>ФНЧ 16</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Медиана-ФНЧ</string>
+          </property>
+         </item>
         </widget>
        </item>
       </layout>
@@ -197,8 +296,8 @@
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>177</x>
-     <y>493</y>
+     <x>186</x>
+     <y>285</y>
     </hint>
     <hint type="destinationlabel">
      <x>157</x>
@@ -213,8 +312,8 @@
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>177</x>
-     <y>493</y>
+     <x>186</x>
+     <y>285</y>
     </hint>
     <hint type="destinationlabel">
      <x>177</x>

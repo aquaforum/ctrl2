@@ -7,7 +7,7 @@ TARGET =
 DEPENDPATH += . dallas
 INCLUDEPATH += . dallas
 
-CONFIG += release_and_debug
+CONFIG += release
 
 # Input
 HEADERS += DeviceDS18B20.h \
@@ -18,7 +18,6 @@ HEADERS += DeviceDS18B20.h \
            OneWireBus.h \
            OneWireBusModel.h \
            OneWireTestMainWindow.h \
-           platform.h \
            dallas/crc.h \
            dallas/dallas.h \
            dallas/delay.h \
@@ -52,6 +51,7 @@ UI_DIR = build
 RCC_DIR = build
 
 
-win32:DEFINES += _WINDOWS_
+# win32:DEFINES += _WINDOWS_
+win32:DEFINES += _WINDOWS_CE_
 unix:DEFINES += _LINUX_
 

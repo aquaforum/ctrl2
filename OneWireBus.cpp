@@ -1,9 +1,14 @@
+#include <QTime>
+#include <QSettings>
+
 #include "OneWireBus.h"
 #include "dallas/ds18x20.h"
 #include "dallas/ds2408.h"
 #include "dallas/ds2450.h"
 
-#include "platform.h"
+#include "DeviceDS2408.h"
+#include "DeviceDS2450.h"
+#include "DeviceDS18B20.h"
 
 #if defined(_WINDOWS_)
 const char *portNameTemplate = "COM%1";
@@ -19,7 +24,7 @@ const char portNameBase = 0;
 const char *portNameTemplate = "/dev/ttySAC%1";
 const char portNameBase = 0;
 #else
-#error _WINDOWS_ / _WINDOWS_CE_ / _LINUX_ / _LINUX_EMBEDDED_ must be defined in "platform.h"
+#error _WINDOWS_ / _WINDOWS_CE_ / _LINUX_ / _LINUX_EMBEDDED_ must be defined
 #endif
 
 // static
@@ -43,12 +48,15 @@ QString OneWireDevice::dallasFamilyString(const dallas_rom_id_T &id)
 	}
 }
 
-OneWireBus::OneWireBus()
+OneWireBus::OneWireBus(bool isLogEnabled)
+	: logFile("OneWireBusLog.txt"), log(&logFile)
 {
 	started = false;
 	m_portNumber = 0;
 	dallasLibraryInitialized = false;
 	memset(prototypes, 0, sizeof(prototypes));
+	if (isLogEnabled)
+		logFile.open(QIODevice::Append | QIODevice::WriteOnly | QIODevice::Text);
 }
  
 OneWireBus::~OneWireBus()
@@ -89,12 +97,74 @@ void OneWireBus::run()
 	}
 }
 
+void OneWireBus::writeStateToLog(OneWireDevice *device, int msecs)
+{
+	if (!logFile.isOpen())
+		return;
+
+	DeviceDS2450 *adc = 0;
+	DeviceDS2408 *switch8 = 0;
+	DeviceDS18B20 *thermometer = 0;
+	switch (device->family()) {
+		case DS2408_FAMILY: switch8 = static_cast<DeviceDS2408 *>(device); break;
+		case DS2450_FAMILY: adc = static_cast<DeviceDS2450 *>(device); break;
+		case DS18B20_FAMILY: thermometer = static_cast<DeviceDS18B20 *>(device); break;
+	}
+
+	if (adc) {
+		log << QTime::currentTime().toString("hh:mm:ss.zzz") << " ";
+		log << "ADC I/O time: " << QString::number(msecs) << " ms\r\n";
+		log << QTime::currentTime().toString("hh:mm:ss.zzz");
+		for (int i = 0; i < DeviceDS2450::ChannelCount; i++) {
+			log << QString(" ADC.#") + QString::number(i + 1) << " " << (adc->isOutputActivated(i) ? " ON " : "OFF ");
+			log << adc->milliVoltsText(adc->milliVolts(i)).rightJustified(11, QChar('0')) + 
+				" (" + QString::number(adc->value(i)).rightJustified(5, QChar('0')) + ")";
+		}
+	}
+	else if (switch8) {
+		log << QTime::currentTime().toString("hh:mm:ss.zzz") << " ";
+		log << "SW I/O time: " << QString::number(msecs) << " ms\r\n";
+		log << QTime::currentTime().toString("hh:mm:ss.zzz");
+		for (int i = 0; i < DeviceDS2408::ChannelCount; i++) {
+			log << QString(" SW.#") + QString::number(i + 1) << " " << (switch8->isOutputActivated(i) ? " ON" : "OFF") << "/";
+			log << (switch8->isInputHigh(i) ? "HIGH" : "LOW ");
+		}
+	}
+	else {
+		log << QTime::currentTime().toString("hh:mm:ss.zzz") << " ";
+		log << "T I/O time: " << QString::number(msecs) << " ms\r\n";
+		log << QTime::currentTime().toString("hh:mm:ss.zzz");
+		log << QString(" T.#") + QString::number(1) << " ";
+		log << DeviceDS18B20::temperatureText(thermometer->temperature());
+	}
+	log << "\r\n";
+
+}
+
 void OneWireBus::pollDevices()
 {
+	QVector<bool> isFamilyStatePrepared(256);
+	QVector<bool> isFamilyStateFailed(256);
+
 	foreach(OneWireDevice *device, m_devices) {
-		device->readState();
+		QTime lastPollingTime = QTime::currentTime();
+		if (!isFamilyStatePrepared[device->family()]) {
+			isFamilyStateFailed[device->family()] = (device->prepareStateAll() != DALLAS_NO_ERROR);
+			isFamilyStatePrepared[device->family()] = true;
+		}
+		if (isFamilyStateFailed[device->family()]) {
+			device->readPreparedState();
+		}
+		else {
+			device->readState();
+		}
+		int msecs = lastPollingTime.msecsTo(QTime::currentTime());
+		if (msecs < 0)
+			msecs += 86400000;
+		writeStateToLog(device, msecs);
 		yieldCurrentThread();
 	}
+
 	emit pollDevicesCompleted();
 }
 

@@ -288,24 +288,19 @@ u08 ds2450StartAll(dallas_rom_id_T* rom_id)
 
 u08 ds2450ResultAll(dallas_rom_id_T* rom_id, u16 result[4])
 {
-	//const u08 bytes_to_read = 10;		// read 10bytes = 2/ch*4ch + CRC
-	u08 bytes_to_read = 10;
+	u08 bytes_to_read = 8;                  // read 8bytes = 2bytes/ch*4ch, 2 additional bytes of CRC16 read and checked in dallasReadRam)
 	u08 i;
 	u08 error;
-	u08 data[10];
-	u08 resolution[10];
+	u08 data[8];
+	//u08 resolution[8];
 	u16 address;
 
 	DALLAS_CHECK(dallasAddressCheck(rom_id, DS2450_FAMILY));			// check address
 	DALLAS_CHECK(ds2450Chan2Addr('A', DS2450_DATA_PAGE, &address));		// start address with channel A
 	DALLAS_CHECK(dallasReadRAM(rom_id, address, bytes_to_read, data));	// read the conversion data
 
-	//FUTURE: do a real CRC16 check
-
-	DALLAS_CHECK(ds2450Chan2Addr('A', DS2450_SETUP_PAGE, &address));	// start address with channel A
-	DALLAS_CHECK(dallasReadRAM(rom_id, address, bytes_to_read, resolution));	// read the resolution data
-
-	// check crc?
+	//DALLAS_CHECK(ds2450Chan2Addr('A', DS2450_SETUP_PAGE, &address));	// start address with channel A
+	//DALLAS_CHECK(dallasReadRAM(rom_id, address, bytes_to_read, resolution));	// read the resolution data
 
 	// store the result by combining the 2 bytes
 	// the result's MSB is always the same, so we may need to
@@ -313,11 +308,10 @@ u08 ds2450ResultAll(dallas_rom_id_T* rom_id, u16 result[4])
 	error=0;
 	for(i=0;i<8;i+=2)
 	{
-		resolution[i] &= 0x0F;
-		if (!resolution[i])
-			resolution[i] = 16;
+		//resolution[i] &= 0x0F;
+		//if (!resolution[i])
+		//	resolution[i] = 16;
 
-		result[error] = 0;
 		//result[error] = (((u16)data[i+1] << 8) | data[i]) >> (16 - resolution[i]);
 		result[error] = (((u16)data[i+1] << 8) | data[i]);
 		error++;
