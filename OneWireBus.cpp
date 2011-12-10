@@ -10,7 +10,7 @@
 #include "DeviceDS2450.h"
 #include "DeviceDS18B20.h"
 
-#if defined(_WINDOWS_)
+#if defined(_WINDOWS_NT_)
 const char *portNameTemplate = "COM%1";
 const char portNameBase = 1;
 #elif defined(_WINDOWS_CE_)
@@ -24,7 +24,7 @@ const char portNameBase = 0;
 const char *portNameTemplate = "/dev/ttySAC%1";
 const char portNameBase = 0;
 #else
-#error _WINDOWS_ / _WINDOWS_CE_ / _LINUX_ / _LINUX_EMBEDDED_ must be defined
+#error _WINDOWS_NT_ / _WINDOWS_CE_ / _LINUX_ / _LINUX_EMBEDDED_ must be defined
 #endif
 
 // static

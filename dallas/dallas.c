@@ -2,7 +2,7 @@
 // Ported to ARM by cherep22
 
 //----- Include Files ---------------------------------------------------------
-#if defined(_WINDOWS_) || defined(_WINDOWS_CE_)
+#if defined(_WINDOWS_NT_) || defined(_WINDOWS_CE_)
 #include <windows.h>
 #endif
 
@@ -165,7 +165,7 @@ void dallasDeinit()
 #endif // defined(_LINUX_) || defined(_LINUX_EMBEDDED_)
 
 
-#if defined(_WINDOWS_) || defined(_WINDOWS_CE_)
+#if defined(_WINDOWS_NT_) || defined(_WINDOWS_CE_)
 
 #define DALLAS_BAUD_RATE_RESET CBR_9600
 #define DALLAS_BAUD_RATE_IO    CBR_115200
@@ -289,7 +289,7 @@ void dallasDeinit()
     CloseHandle(hCom);
 }
 
-#endif // defined(_WINDOWS_) || defined(_WINDOWS_CE_)
+#endif // defined(_WINDOWS_NT_) || defined(_WINDOWS_CE_)
 
 //----------- End of platform specific code ------------
 //------------------------------------------------------

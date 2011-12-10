@@ -1,4 +1,4 @@
-#if defined(_WINDOWS_) || defined(_WINDOWS_CE_)
+#if defined(_WINDOWS_NT_) || defined(_WINDOWS_CE_)
 #include <windows.h>
 #endif
 
@@ -8,7 +8,7 @@
 
 #include "delay.h"
 
-#if defined(_WINDOWS_) || defined(_WINDOWS_CE_)
+#if defined(_WINDOWS_NT_) || defined(_WINDOWS_CE_)
 static __int64 freq;
 
 void delay_us_(u32 delayval)

@@ -16,7 +16,7 @@ OneWireTestMainWindow::OneWireTestMainWindow(QSettings & settings, QWidget *pare
         portSpinBox->setValue(settings.value("portNo",portSpinBox->value()).toInt());
 	on_portSpinBox_valueChanged(portSpinBox->value());
 
-#if defined(_WINDOWS_) || defined(_WINDOWS_CE_)
+#if defined(_WINDOWS_NT_) || defined(_WINDOWS_CE_)
     portLineEdit->hide();
 #elif defined(_LINUX_) || defined(_LINUX_EMBEDDED_)
     portSpinBox->hide();

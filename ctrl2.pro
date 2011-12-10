@@ -51,7 +51,7 @@ UI_DIR = build
 RCC_DIR = build
 
 
-# win32:DEFINES += _WINDOWS_
+# win32:DEFINES += _WINDOWS_NT_
 win32:DEFINES += _WINDOWS_CE_
 unix:DEFINES += _LINUX_
 
