@@ -171,7 +171,7 @@ void dallasDeinit()
 #define DALLAS_BAUD_RATE_IO    CBR_115200
 
 //#define CHECK_TRUE(f, s) if (!(f)) { rprintf((s), GetLastError()); getchar(); return DALLAS_OS_ERROR; }
-#define CHECK_TRUE(f, s) if (!(f)) { _snprintf_s(last_system_error_text, sizeof(last_system_error_text), _TRUNCATE, s, GetLastError()); return DALLAS_OS_ERROR; }
+#define CHECK_TRUE(f, s) if (!(f)) { _snprintf(last_system_error_text, sizeof(last_system_error_text), s, GetLastError()); return DALLAS_OS_ERROR; }
 
 static HANDLE hCom;
 static DCB dcb;
@@ -180,12 +180,11 @@ char last_system_error_text[255];
 
 char *dallasGetLastSystemErrorText()
 {
-    size_t i;
     size_t len = strlen(last_system_error_text);
     wchar_t w_last_system_error_text[255];
     FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_ARGUMENT_ARRAY, 
         0, GetLastError(), 0, w_last_system_error_text, sizeof(w_last_system_error_text), 0);
-    wcstombs_s(&i, &last_system_error_text[len], sizeof(last_system_error_text) - len, w_last_system_error_text, _TRUNCATE);
+    wcstombs(&last_system_error_text[len], w_last_system_error_text, sizeof(last_system_error_text) - len);
     return last_system_error_text;
 //  // LINUX
 //  Result := strerror_r(ErrorCode, Buffer, sizeof(Buffer));
