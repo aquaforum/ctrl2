@@ -265,6 +265,7 @@ u08 dallasInit(char *PortName)
 //    dcb.Parity = MARKPARITY;
     dcb.BaudRate = CBR_110;
 //    dcb.StopBits = TWOSTOPBITS;
+    dcb.fDtrControl = DTR_CONTROL_ENABLE;
 
     CHECK_TRUE(
         GetCommTimeouts(hCom, &cto),
